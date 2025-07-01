@@ -4,6 +4,7 @@ import { StudentRoute } from "./routes/student.js";
 import statusRoutes from "./routes/status.js";
 import userRoutes from "./routes/user.js";
 import statusLogRoutes from "./routes/statusLog.js";
+import authRoutes from "./routes/auth.js"
 import cors from "cors";
 
 
@@ -24,6 +25,7 @@ app.use("/api/student", StudentRoute);
 app.use("/api/status", statusRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/statusLog", statusLogRoutes);
+app.use("/api/auth", authRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3000;

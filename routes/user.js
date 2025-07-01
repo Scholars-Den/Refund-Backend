@@ -5,16 +5,21 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 router.post("/", async (req, res) => {
-  const { name, phoneNumber, role } = req.body;
+  const { name, mobileNumber, role } = req.body;
 
   try {
     const newUser = await prisma.user.create({
       data: {
         name,
-        phoneNumber,
+        mobileNumber,
         role,
       },
     });
+    const tokenForExistingStudent = jwt.sign(
+      { role: "Student", contactNumber },
+      JWT_SECRET
+    );
+    consoele.log("tokenForExisting ", tokenForExistingStudent);
     res.status(201).json({ message: "user created", user: newUser });
   } catch (error) {
     console.error("Error creating user:", error);
@@ -50,12 +55,31 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to get user" });
   }
 });
+router.get("/adminByMobileNumber", async (req, res) => {
+  const { mobileNumber } = req.body;
+  console.log("mobileNumber", mobileNumber);
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: { mobileNumber },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "user not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Failed to get user" });
+  }
+});
 
 router.patch("/:id", async (req, res) => {
   const userId = parseInt(req.params.id, 10);
-  const { name, phoneNumber, role } = req.body;
+  const { name, mobileNumber, role } = req.body;
 
-  if (!name && !phoneNumber && !role) {
+  if (!name && !mobileNumber && !role) {
     return res.status(400).json({ error: "No update fields provided." });
   }
 
@@ -64,7 +88,7 @@ router.patch("/:id", async (req, res) => {
       where: { id: userId },
       data: {
         ...(name && { name }),
-        ...(phoneNumber && { phoneNumber }),
+        ...(mobileNumber && { mobileNumber }),
         ...(role && { role }),
       },
     });

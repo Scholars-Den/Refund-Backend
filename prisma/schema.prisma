@@ -16,23 +16,26 @@ datasource db {
 
 model Student {
   id                  Int         @id @default(autoincrement())
+  mobileNumber        String
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
-  name                String
-  fatherName          String
-  rollNumber          String
-  dateOfAdmission     DateTime
-  session             DateTime
-  accountHolderName   String
-  accountNumber       String
-  ifsc                String
-  bankName            String
-  relationWithStudent String
-  amountDeposit       Int
-  remark              String
+  name                String?
+  fatherName          String?
+  rollNumber          String?
+  dateOfAdmission     DateTime?   @db.Date  // ⬅️ Store only the date (without time)
+  session             Int?                  // Stores year like 2024
+  batch               String?
+  accountHolderName   String?
+  accountNumber       String?
+  ifsc                String?
+  bankName            String?
+  relationWithStudent String?
+  amountDeposit       Int?
+  remark              String?
   Status              Status[]
   StatusLog           StatusLog[]
 }
+
 
 model Status {
   id        Int      @id @default(autoincrement())
@@ -68,4 +71,11 @@ model StatusLog {
   updatedBy Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model OtpStore {
+  id           Int      @id @default(autoincrement())
+  mobileNumber String   @unique
+  otp          String
+  createdAt    DateTime
 }
