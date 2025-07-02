@@ -5,7 +5,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import jwt from "jsonwebtoken";
 import { verifyStudentToken } from "../middlewares/authMiddleware.js";
-const SECRET_KEY = process.env.JWT_SECRET
+const SECRET_KEY = process.env.JWT_SECRET;
 
 router.get("/", async (req, res) => {
   try {
@@ -38,9 +38,6 @@ router.get("/", async (req, res) => {
 //     throw error;
 //   }
 // });
-
-
-
 
 router.post("/createInitialStudent", async (req, res) => {
   const { mobileNumber } = req.body;
@@ -102,30 +99,13 @@ router.post("/createInitialStudent", async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 router.get("/studentByForm", verifyStudentToken, async (req, res) => {
   try {
-
-    const {mobileNumber} = req.student;
-
-
-   
+    const { mobileNumber } = req.student;
 
     const result = await prisma.student.findFirst({
       where: {
-       mobileNumber,
+        mobileNumber,
       },
     });
     res.status(200).json({ result });
@@ -134,15 +114,6 @@ router.get("/studentByForm", verifyStudentToken, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
-
-
-
-
-
-
-
 
 // router.post("/create", async (req, res) => {
 //   try {
@@ -186,19 +157,16 @@ router.get("/studentByForm", verifyStudentToken, async (req, res) => {
 //   console.log("mobileNumber", req.body);
 // });
 
-
-
-
-
-
 router.post("/create", verifyStudentToken, async (req, res) => {
   try {
+    console.log("req.body", req.body);
     const {
       name,
       fatherName,
       rollNumber,
       dateOfAdmission,
       session,
+      batch,
       accountHolderName,
       accountNumber,
       ifsc,
@@ -206,9 +174,10 @@ router.post("/create", verifyStudentToken, async (req, res) => {
       relationWithStudent,
       amountDeposit,
       remark,
-    } = req.body;
+    } = req.body.studentDetails;
 
     const mobileNumber = req.student.mobileNumber;
+    console.log("req.student", req.student);
 
     // Check if student exists
     const existingStudent = await prisma.student.findFirst({
@@ -226,7 +195,8 @@ router.post("/create", verifyStudentToken, async (req, res) => {
         fatherName,
         rollNumber,
         dateOfAdmission: new Date(dateOfAdmission),
-        session: new Date(session),
+        session,
+        batch,
         accountHolderName,
         accountNumber,
         ifsc,
@@ -246,11 +216,6 @@ router.post("/create", verifyStudentToken, async (req, res) => {
     return res.status(500).json({ error: "Failed to update student" });
   }
 });
-
-
-
-
-
 
 router.patch("/update/:id", async (req, res) => {
   const studentId = parseInt(req.params.id, 10);

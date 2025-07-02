@@ -1,6 +1,9 @@
 import axios from "axios";
 
 export const otpVerification = async (otp, mobileNumber) => {
+
+
+  console.log("${process.env.FAST2SMS_API_KEY}", process.env.FAST2SMS_API_KEY);
   console.log("otp from otpVerification", otp, mobileNumber);
   const options = {
     method: "POST",

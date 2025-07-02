@@ -6,6 +6,9 @@ import userRoutes from "./routes/user.js";
 import statusLogRoutes from "./routes/statusLog.js";
 import authRoutes from "./routes/auth.js"
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
+
 
 
 

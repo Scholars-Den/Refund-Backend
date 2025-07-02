@@ -41,7 +41,7 @@ router.post("/sendVerification", async (req, res) => {
       otp,
     });
   } catch (error) {
-    console.error("Error sending OTP:", error.message);
+    console.log("Error sending OTP:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to send OTP.",
