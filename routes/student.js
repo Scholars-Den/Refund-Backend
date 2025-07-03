@@ -7,6 +7,14 @@ import jwt from "jsonwebtoken";
 import { verifyStudentToken } from "../middlewares/authMiddleware.js";
 const SECRET_KEY = process.env.JWT_SECRET;
 
+import multer  from "multer";
+import fs from "fs";
+import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
+
+dotenv.config();
+
 router.get("/", async (req, res) => {
   try {
     // const allStudent = await prisma.student.findMany({
@@ -157,44 +165,40 @@ router.get("/studentByForm", verifyStudentToken, async (req, res) => {
 //   console.log("mobileNumber", req.body);
 // });
 
-router.post("/create", verifyStudentToken, async (req, res) => {
-  try {
-    console.log("req.body", req.body);
-    const {
-      name,
-      fatherName,
-      rollNumber,
-      dateOfAdmission,
-      session,
-      batch,
-      accountHolderName,
-      accountNumber,
-      ifsc,
-      bankName,
-      relationWithStudent,
-      amountDeposit,
-      remark,
-    } = req.body.studentDetails;
+const upload = multer({ dest: "uploads/" });
 
-    const mobileNumber = req.student.mobileNumber;
-    console.log("req.student", req.student);
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-    // Check if student exists
-    const existingStudent = await prisma.student.findFirst({
-      where: { mobileNumber },
-    });
+const safeUnlink = (path) => {
+  fs.unlink(path, (err) => {
+    if (err) console.warn("File cleanup failed:", err);
+  });
+};
 
-    if (!existingStudent) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+router.post(
+  "/create",
+  verifyStudentToken,
+  upload.single("image"),
+  async (req, res) => {
+    try {
 
-    const updatedStudent = await prisma.student.update({
-      where: { id: existingStudent.id },
-      data: {
+      console.log("req.file", req.file)
+      console.log("req.file", req.body)
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file uploaded" });
+      }
+      const filePath = path.resolve(req.file.path);
+
+      console.log("req.body", req.body);
+      const {
         name,
         fatherName,
         rollNumber,
-        dateOfAdmission: new Date(dateOfAdmission),
+        dateOfAdmission,
         session,
         batch,
         accountHolderName,
@@ -204,18 +208,90 @@ router.post("/create", verifyStudentToken, async (req, res) => {
         relationWithStudent,
         amountDeposit,
         remark,
-      },
-    });
+      } = JSON.parse(req.body.studentDetails);
 
-    return res.status(200).json({
-      message: "Student updated successfully",
-      student: updatedStudent,
-    });
-  } catch (error) {
-    console.error("Update Error:", error);
-    return res.status(500).json({ error: "Failed to update student" });
+
+
+      const requiredFields = [
+        name,
+        fatherName,
+        rollNumber,
+        dateOfAdmission,
+        session,
+        batch,
+        accountHolderName,
+        accountNumber,
+        ifsc,
+        bankName,
+      ];
+      const emptyField = requiredFields.find((f) => !f);
+      if (emptyField) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      let result;
+      try {
+        result = await cloudinary.uploader.upload(filePath, {
+          folder: "Refund Form",
+        });
+      } catch (cloudErr) {
+        safeUnlink(filePath);
+
+        return res.status(500).json({ error: "Cloudinary upload failed" });
+      } finally {
+        safeUnlink(filePath);
+
+        // Delete temp file
+      }
+
+
+      console.log("result.secure_url", result.secure_url);
+
+      const mobileNumber = req.student.mobileNumber;
+      console.log("req.student", req.student);
+
+      // Check if student exists
+      const existingStudent = await prisma.student.findFirst({
+        where: { mobileNumber },
+      });
+
+      if (!existingStudent) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const updatedStudent = await prisma.student.update({
+        where: { id: existingStudent.id },
+        data: {
+          name,
+          fatherName,
+          rollNumber,
+          dateOfAdmission: new Date(dateOfAdmission),
+          session,
+          batch,
+          accountHolderName,
+          accountNumber,
+          ifsc,
+          bankName,
+          relationWithStudent,
+          amountDeposit,
+          remark,
+          document: result.secure_url,
+        },
+      });
+
+      return res.status(200).json({
+        message: "Student updated successfully",
+        student: updatedStudent,
+      });
+    } catch (error) {
+      console.error("Update Error:", error);
+      if (error.code === "P2025") {
+        return res.status(404).json({ error: "Student not found in database" });
+      }
+      return res.status(500).json({ error: "Failed to update student" });
+    }
   }
-});
+);
 
 router.patch("/update/:id", async (req, res) => {
   const studentId = parseInt(req.params.id, 10);

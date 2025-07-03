@@ -4,16 +4,15 @@ import { StudentRoute } from "./routes/student.js";
 import statusRoutes from "./routes/status.js";
 import userRoutes from "./routes/user.js";
 import statusLogRoutes from "./routes/statusLog.js";
-import authRoutes from "./routes/auth.js"
+import authRoutes from "./routes/auth.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
-
-
-
-
+import helmet from "helmet";
 
 const app = express();
+app.use(helmet());
+
 app.use(express.json());
 app.use(
   cors({
