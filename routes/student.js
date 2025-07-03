@@ -316,8 +316,11 @@ router.post(
       }
 
       if (error.code === "P2025") {
+
+        console.log("error.code P2025", error)
         return res.status(404).json({ error: "Student not found in database" });
       }
+        console.log("error.code P2025", error)
 
       return res.status(500).json({ error: "Unexpected server error" });
     }
