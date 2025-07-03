@@ -296,7 +296,7 @@ router.post(
             remarks: `Update failed: ${txError.message}`,
           },
         });
-
+        console.log("txError", txError);
         return res.status(500).json({ error: "Failed to update student" });
       }
     } catch (error) {
@@ -312,15 +312,15 @@ router.post(
           },
         });
       } catch (logErr) {
+        console.log("error", logErr);
         console.error("Failed to log error to statusLog:", logErr);
       }
 
       if (error.code === "P2025") {
-
-        console.log("error.code P2025", error)
+        console.log("error.code P2025", error);
         return res.status(404).json({ error: "Student not found in database" });
       }
-        console.log("error.code P2025", error)
+      console.log("error.code ", error);
 
       return res.status(500).json({ error: "Unexpected server error" });
     }
