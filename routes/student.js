@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 import { verifyStudentToken } from "../middlewares/authMiddleware.js";
 const SECRET_KEY = process.env.JWT_SECRET;
 
-import multer  from "multer";
+import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
@@ -184,16 +184,15 @@ router.post(
   verifyStudentToken,
   upload.single("image"),
   async (req, res) => {
-    try {
+    const mobileNumber = req.student.mobileNumber;
 
-      console.log("req.file", req.file)
-      console.log("req.file", req.body)
+    try {
       if (!req.file) {
         return res.status(400).json({ message: "No image file uploaded" });
       }
+
       const filePath = path.resolve(req.file.path);
 
-      console.log("req.body", req.body);
       const {
         name,
         fatherName,
@@ -209,8 +208,6 @@ router.post(
         amountDeposit,
         remark,
       } = JSON.parse(req.body.studentDetails);
-
-
 
       const requiredFields = [
         name,
@@ -236,59 +233,93 @@ router.post(
         });
       } catch (cloudErr) {
         safeUnlink(filePath);
-
         return res.status(500).json({ error: "Cloudinary upload failed" });
       } finally {
-        safeUnlink(filePath);
-
-        // Delete temp file
+        safeUnlink(filePath); // Always delete temp file
       }
 
-
-      console.log("result.secure_url", result.secure_url);
-
-      const mobileNumber = req.student.mobileNumber;
-      console.log("req.student", req.student);
-
-      // Check if student exists
       const existingStudent = await prisma.student.findFirst({
         where: { mobileNumber },
       });
 
       if (!existingStudent) {
+        await prisma.statusLog.create({
+          data: {
+            formId: null,
+            status: "Student Not Found",
+            remarks: `No student found with mobile number ${mobileNumber}`,
+          },
+        });
         return res.status(404).json({ message: "Student not found" });
       }
 
-      const updatedStudent = await prisma.student.update({
-        where: { id: existingStudent.id },
-        data: {
-          name,
-          fatherName,
-          rollNumber,
-          dateOfAdmission: new Date(dateOfAdmission),
-          session,
-          batch,
-          accountHolderName,
-          accountNumber,
-          ifsc,
-          bankName,
-          relationWithStudent,
-          amountDeposit,
-          remark,
-          document: result.secure_url,
-        },
-      });
+      try {
+        const [updatedStudent, addStudentLog] = await prisma.$transaction([
+          prisma.student.update({
+            where: { id: existingStudent.id },
+            data: {
+              name,
+              fatherName,
+              rollNumber,
+              dateOfAdmission: new Date(dateOfAdmission),
+              session,
+              batch,
+              accountHolderName,
+              accountNumber,
+              ifsc,
+              bankName,
+              relationWithStudent,
+              amountDeposit,
+              remark,
+              document: result.secure_url,
+            },
+          }),
+          prisma.statusLog.create({
+            data: {
+              formId: existingStudent.id,
+              status: "Form Submitted Successfully",
+              remarks: "Form Submitted Successfully",
+            },
+          }),
+        ]);
 
-      return res.status(200).json({
-        message: "Student updated successfully",
-        student: updatedStudent,
-      });
+        return res.status(200).json({
+          message: "Student updated successfully",
+          student: updatedStudent,
+        });
+      } catch (txError) {
+        // ❗ Log transaction failure
+        await prisma.statusLog.create({
+          data: {
+            formId: existingStudent.id,
+            status: "Student Update Failed",
+            remarks: `Update failed: ${txError.message}`,
+          },
+        });
+
+        return res.status(500).json({ error: "Failed to update student" });
+      }
     } catch (error) {
-      console.error("Update Error:", error);
+      console.error("Unhandled Error:", error);
+
+      // Log general failure
+      try {
+        await prisma.statusLog.create({
+          data: {
+            formId: null,
+            status: "Unhandled Error",
+            remarks: error.message || "Unknown error",
+          },
+        });
+      } catch (logErr) {
+        console.error("Failed to log error to statusLog:", logErr);
+      }
+
       if (error.code === "P2025") {
         return res.status(404).json({ error: "Student not found in database" });
       }
-      return res.status(500).json({ error: "Failed to update student" });
+
+      return res.status(500).json({ error: "Unexpected server error" });
     }
   }
 );
