@@ -1,10 +1,10 @@
 import express from "express";
 
-// import { StudentRoute } from "./routes/student.js";
-// import statusRoutes from "./routes/status.js";
-// import userRoutes from "./routes/user.js";
-// import statusLogRoutes from "./routes/statusLog.js";
-// import authRoutes from "./routes/auth.js";
+import { StudentRoute } from "./routes/student.js";
+import statusRoutes from "./routes/status.js";
+import userRoutes from "./routes/user.js";
+import statusLogRoutes from "./routes/statusLog.js";
+import authRoutes from "./routes/auth.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
@@ -22,7 +22,7 @@ app.use(express.json());
 
 
 const corsOptions = {
-  origin: "https://refund.scholarsden.in",
+  origin: ["https://refund.scholarsden.in", "http://localhost:5173"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -48,11 +48,11 @@ app.use(express.json()); // to parse JSON bodies
 
 // POST /students - create a new student
 
-// app.use("/api/student", StudentRoute);
-// app.use("/api/status", statusRoutes);
-// app.use("/api/user", userRoutes);
-// app.use("/api/statusLog", statusLogRoutes);
-// app.use("/api/auth", authRoutes);
+app.use("/api/student", StudentRoute);
+app.use("/api/status", statusRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/statusLog", statusLogRoutes);
+app.use("/api/auth", authRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3000;
