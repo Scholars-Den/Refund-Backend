@@ -184,14 +184,15 @@ router.post(
   verifyStudentToken,
   upload.single("image"),
   async (req, res) => {
+      console.log("Request Headers:", req.headers); 
     const mobileNumber = req.student.mobileNumber;
 
     try {
-      // if (!req.file) {
-      //   return res.status(400).json({ message: "No image file uploaded" });
-      // }
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file uploaded" });
+      }
 
-      // const filePath = path.resolve(req.file.path);
+      const filePath = path.resolve(req.file.path);
 
       const {
         name,
@@ -226,17 +227,17 @@ router.post(
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // let result;
-      // try {
-      //   result = await cloudinary.uploader.upload(filePath, {
-      //     folder: "Refund Form",
-      //   });
-      // } catch (cloudErr) {
-      //   safeUnlink(filePath);
-      //   return res.status(500).json({ error: "Cloudinary upload failed" });
-      // } finally {
-      //   safeUnlink(filePath); // Always delete temp file
-      // }
+      let result;
+      try {
+        result = await cloudinary.uploader.upload(filePath, {
+          folder: "Refund Form",
+        });
+      } catch (cloudErr) {
+        safeUnlink(filePath);
+        return res.status(500).json({ error: "Cloudinary upload failed" });
+      } finally {
+        safeUnlink(filePath); // Always delete temp file
+      }
 
       const existingStudent = await prisma.student.findFirst({
         where: { mobileNumber },
@@ -271,7 +272,7 @@ router.post(
               relationWithStudent,
               amountDeposit,
               remark,
-              // document: result.secure_url,
+              document: result.secure_url,
             },
           }),
           prisma.statusLog.create({

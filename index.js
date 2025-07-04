@@ -13,22 +13,23 @@ dotenv.config();
 const app = express();
 // app.use(helmet());
 
-app.use(express.json());
-// app.use(
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));// app.use(
 //   cors({
 //     origin: "*",
 //   })
 // );
 
 
-const corsOptions = {
-  origin: ["https://refund.scholarsden.in", "http://localhost:5173"],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
 
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: "*", // ⚠️ In production, restrict to known client origins
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 
 
 // CORS config
