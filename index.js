@@ -14,11 +14,29 @@ const app = express();
 // app.use(helmet());
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: "*",
-  })
-);
+// app.use(
+//   cors({
+//     origin: "*",
+//   })
+// );
+
+
+
+
+// CORS config
+app.use(cors({
+  origin: "https://refund.scholarsden.in",  // ✅ Use your frontend domain
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+// This handles preflight (OPTIONS) requests
+app.options('*', cors());
+
+
+
+
 app.use(express.json()); // to parse JSON bodies
 
 // POST /students - create a new student
