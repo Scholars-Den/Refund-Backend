@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
       },
     });
     const tokenForExistingStudent = jwt.sign(
-      { role: "Student", contactNumber },
+      { role: "Student", mobileNumber },
       JWT_SECRET
     );
     consoele.log("tokenForExisting ", tokenForExistingStudent);

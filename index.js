@@ -8,17 +8,42 @@ import authRoutes from "./routes/auth.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
-import helmet from "helmet";
+// import helmet from "helmet";
 
 const app = express();
-app.use(helmet());
+// app.use(helmet());
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: "*",
-  })
-);
+// app.use(
+//   cors({
+//     origin: "*",
+//   })
+// );
+
+
+const corsOptions = {
+  origin: ["https://refund.scholarsden.in", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+
+// CORS config
+// app.use(cors({
+//   origin: "https://refund.scholarsden.in",  // ✅ Use your frontend domain
+//   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+//   credentials: true
+// }));
+
+// This handles preflight (OPTIONS) requests
+
+
+
+
 app.use(express.json()); // to parse JSON bodies
 
 // POST /students - create a new student
