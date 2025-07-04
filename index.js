@@ -8,10 +8,10 @@ import authRoutes from "./routes/auth.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
-import helmet from "helmet";
+// import helmet from "helmet";
 
 const app = express();
-app.use(helmet());
+// app.use(helmet());
 
 app.use(express.json());
 app.use(
