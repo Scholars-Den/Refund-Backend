@@ -31,7 +31,7 @@ model Student {
   ifsc                String?
   bankName            String?
   relationWithStudent String?
-  amountDeposit       Int?
+  cautionMoneyDeposited       Int?
   remark              String?
   document  String?
   Status              Status[]

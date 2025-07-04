@@ -184,15 +184,17 @@ router.post(
   verifyStudentToken,
   upload.single("image"),
   async (req, res) => {
-      console.log("Request Headers:", req.headers); 
+    console.log("Request Headers:", req.headers);
     const mobileNumber = req.student.mobileNumber;
 
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No image file uploaded" });
-      }
+    console.log("req.body", req.body);
 
-      const filePath = path.resolve(req.file.path);
+    try {
+      // if (!req.file) {
+      //   return res.status(400).json({ message: "No image file uploaded" });
+      // }
+
+      // const filePath = path.resolve(req.file.path);
 
       const {
         name,
@@ -206,9 +208,10 @@ router.post(
         ifsc,
         bankName,
         relationWithStudent,
-        amountDeposit,
+        cautionMoneyDeposited,
         remark,
-      } = JSON.parse(req.body.studentDetails);
+        document
+      } = req.body;
 
       const requiredFields = [
         name,
@@ -221,23 +224,24 @@ router.post(
         accountNumber,
         ifsc,
         bankName,
+        document,
       ];
       const emptyField = requiredFields.find((f) => !f);
       if (emptyField) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      let result;
-      try {
-        result = await cloudinary.uploader.upload(filePath, {
-          folder: "Refund Form",
-        });
-      } catch (cloudErr) {
-        safeUnlink(filePath);
-        return res.status(500).json({ error: "Cloudinary upload failed" });
-      } finally {
-        safeUnlink(filePath); // Always delete temp file
-      }
+      // let result;
+      // try {
+      //   result = await cloudinary.uploader.upload(filePath, {
+      //     folder: "Refund Form",
+      //   });
+      // } catch (cloudErr) {
+      //   safeUnlink(filePath);
+      //   return res.status(500).json({ error: "Cloudinary upload failed" });
+      // } finally {
+      //   safeUnlink(filePath); // Always delete temp file
+      // }
 
       const existingStudent = await prisma.student.findFirst({
         where: { mobileNumber },
@@ -270,9 +274,9 @@ router.post(
               ifsc,
               bankName,
               relationWithStudent,
-              amountDeposit,
+              cautionMoneyDeposited,
               remark,
-              document: result.secure_url,
+              document,
             },
           }),
           prisma.statusLog.create({
