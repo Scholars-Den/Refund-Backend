@@ -1,11 +1,17 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
 router.post("/", async (req, res) => {
   const { name, mobileNumber, role } = req.body;
+
+  console.log("req.body fro create", req.body);
 
   try {
     const newUser = await prisma.user.create({
@@ -19,7 +25,7 @@ router.post("/", async (req, res) => {
       { role: "Student", mobileNumber },
       JWT_SECRET
     );
-    consoele.log("tokenForExisting ", tokenForExistingStudent);
+    console.log("tokenForExisting ", tokenForExistingStudent);
     res.status(201).json({ message: "user created", user: newUser });
   } catch (error) {
     console.error("Error creating user:", error);

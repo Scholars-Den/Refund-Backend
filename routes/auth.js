@@ -5,6 +5,20 @@ import { otpVerification } from "../utils/smsTemplates.js";
 const router = express.Router();
 const prisma = new PrismaClient();
 
+router.post("/login", async (req, res) => {
+  try {
+    const { mobileNumber } = req.body;
+
+    const data = await prisma.user.findFirst({
+      where: { mobileNumber },
+    });
+
+    console.log("data", data);
+  } catch (error) {
+    console.log("Error", error);
+  }
+});
+
 // Generate & send OTP
 router.post("/sendVerification", async (req, res) => {
   const { mobileNumber } = req.body;
@@ -53,7 +67,7 @@ router.post("/sendVerification", async (req, res) => {
 // Verify OTP
 router.post("/verifyNumber", async (req, res) => {
   const { mobileNumber, otp } = req.body;
-  console.log("req.body",req.body);
+  console.log("req.body", req.body);
 
   if (!mobileNumber || !otp) {
     return res.status(400).json({

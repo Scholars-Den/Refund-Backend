@@ -51,7 +51,7 @@ model Status {
 model User {
   id          Int         @id @default(autoincrement())
   name        String
-  phoneNumber String
+  mobileNumber String @unique
   role        Role        @default(GUEST)
   StatusLog   StatusLog[]
 }
