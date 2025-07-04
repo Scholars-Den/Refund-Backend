@@ -1,6 +1,6 @@
 import express from "express";
 
-const router = express();
+const router = express.Router();
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import jwt from "jsonwebtoken";
