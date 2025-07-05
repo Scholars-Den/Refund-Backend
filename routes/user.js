@@ -1,10 +1,10 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
+import { verifyAdminToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -33,10 +33,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", verifyAdminToken, async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
-    res.status(200).json(users);
+
+    res.status(200).json({admin : req.admin});
   } catch (error) {
     console.error("Error fetching useres:", error);
     res.status(500).json({ error: "Failed to get users" });

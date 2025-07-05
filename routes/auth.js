@@ -1,21 +1,54 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { otpVerification } from "../utils/smsTemplates.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
 router.post("/login", async (req, res) => {
   try {
     const { mobileNumber } = req.body;
+    console.log("mobileNumber", mobileNumber);
 
     const data = await prisma.user.findFirst({
       where: { mobileNumber },
     });
 
-    console.log("data", data);
+    if (!data) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const tokenForExistingStudent = jwt.sign(
+      { role: data.role, mobileNumber: data.mobileNumber },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    // res.cookie("authToken", tokenForExistingStudent, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    //   maxAge: 24 * 60 * 60 * 1000,
+    // });
+
+    // console.log("data", data);
+    return res
+      .cookie("token", tokenForExistingStudent, {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({ message: "Login successful" });
+
+    // return res.status(200).json({ message: "Login successful" });
   } catch (error) {
     console.log("Error", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
