@@ -4,7 +4,7 @@ const router = express();
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import jwt from "jsonwebtoken";
-import { verifyStudentToken } from "../middlewares/authMiddleware.js";
+import { verifyAdminToken, verifyStudentToken } from "../middlewares/authMiddleware.js";
 const SECRET_KEY = process.env.JWT_SECRET;
 
 import multer from "multer";
@@ -15,7 +15,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-router.get("/", async (req, res) => {
+router.get("/", verifyAdminToken,  async (req, res) => {
   try {
     // const allStudent = await prisma.student.findMany({
     //   where: { name: "Alice" },
@@ -282,7 +282,7 @@ router.post(
           prisma.statusLog.create({
             data: {
               formId: existingStudent.id,
-              status: "Form Submitted Successfully",
+              status: "Submitted",
               remarks: "Form Submitted Successfully",
             },
           }),

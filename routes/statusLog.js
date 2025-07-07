@@ -1,5 +1,6 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import { verifyAdminToken } from "../middlewares/authMiddleware.js";
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -39,7 +40,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const log = await prisma.statusLog.findUnique({
-      where: { id: parseInt(req.params.id, 10) },
+      where: { formId: parseInt(req.params.id, 10) },
       include: {
         student: true,
         user: true,
@@ -53,17 +54,24 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE
-router.patch("/:id", async (req, res) => {
+router.patch("/", verifyAdminToken, async (req, res) => {
   try {
-    const { status, remarks, updatedBy } = req.body;
+    const { id: adminId } = req.admin;
+    const { logId: formId, status, remarks } = req.body;
+
+    if (!formId) {
+      return res.status(400).json({ error: "formId (logId) is required" });
+    }
+
     const updatedLog = await prisma.statusLog.update({
-      where: { id: parseInt(req.params.id, 10) },
+      where: { formId }, // ✅ Now allowed because formId is unique
       data: {
         ...(status && { status }),
         ...(remarks && { remarks }),
-        ...(updatedBy && { updatedBy }),
+        updatedBy: adminId,
       },
     });
+
     res.status(200).json(updatedLog);
   } catch (error) {
     console.error("Error updating status log:", error);
@@ -77,7 +85,7 @@ router.delete("/:id", async (req, res) => {
     await prisma.statusLog.delete({
       where: { id: parseInt(req.params.id, 10) },
     });
-    res.status(200).json({message : "StatusLog deleted"});
+    res.status(200).json({ message: "StatusLog deleted" });
   } catch (error) {
     console.error("Error deleting status log:", error);
     res.status(500).json({ error: "Failed to delete status log" });

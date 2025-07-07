@@ -65,8 +65,8 @@ enum Role {
 
 model StatusLog {
   id        Int      @id @default(autoincrement())
-  student   Student  @relation(fields: [formId], references: [id])
-  formId    Int
+  student   Student  @relation(fields: [formId], references: [id]) 
+  formId    Int @unique
   status    String
   remarks   String
   user      User?     @relation(fields: [updatedBy], references: [id])

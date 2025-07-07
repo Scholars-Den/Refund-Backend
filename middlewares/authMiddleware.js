@@ -5,13 +5,11 @@ const SECRET_KEY = process.env.JWT_SECRET || "your-secret-key";
 const prisma = new PrismaClient();
 
 export const verifyStudentToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies.token;
 
-  if (!authHeader) {
+  if (!token) {
     return res.status(401).json({ message: "Authorization header missing" });
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
@@ -21,32 +19,29 @@ export const verifyStudentToken = (req, res, next) => {
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
-export const verifyAdminToken = async(req, res, next) => {
- const token = req.cookies.token;;
-
-  console.log("its working", token);
+export const verifyAdminToken = async (req, res, next) => {
+  const token = req.cookies.token;
 
 
   if (!token) {
     return res.status(401).json({ message: "Authorization header missing" });
   }
 
-
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
 
-    console.log("decoded", decoded);
 
     const isAvailable = await prisma.user.findUnique({
-      where: { mobileNumber : decoded.mobileNumber },
+      where: { mobileNumber: decoded.mobileNumber },
     });
-    if(!isAvailable){
-      return res.status(404).json({message : "Admin Not Found"})
+    if (!isAvailable) {
+      return res.status(404).json({ message: "Admin Not Found" });
     }
 
     req.admin = isAvailable; // attach student info to the request
     next();
   } catch (error) {
+    console.log("error", error);
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
