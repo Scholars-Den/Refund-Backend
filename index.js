@@ -8,8 +8,7 @@ import authRoutes from "./routes/auth.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
-import cookieParser from 'cookie-parser';
-
+import cookieParser from "cookie-parser";
 
 // import helmet from "helmet";
 
@@ -17,23 +16,19 @@ const app = express();
 // app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));// app.use(
+app.use(express.urlencoded({ extended: true, limit: "10mb" })); // app.use(
 //   cors({
 //     origin: "*",
 //   })
 // );
 
-
-
 app.use(
   cors({
-    origin: "http://localhost:5173", // ⚠️ In production, restrict to known client origins
+    origin: ["https://api.refund.scholarsden.in", "http://localhost:5173"], // ⚠️ In production, restrict to known client origins
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })
 );
-
-
 
 // CORS config
 // app.use(cors({
@@ -44,9 +39,6 @@ app.use(
 // }));
 
 // This handles preflight (OPTIONS) requests
-
-
-
 
 app.use(express.json()); // to parse JSON bodies
 
