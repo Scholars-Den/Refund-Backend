@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" })); // app.use(
 
 app.use(
   cors({
-    origin: ["https://api.refund.scholarsden.in", "http://localhost:5173"], // ⚠️ In production, restrict to known client origins
+    origin: ["https://refund.scholarsden.in", "http://localhost:5173"], // ⚠️ In production, restrict to known client origins
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })
