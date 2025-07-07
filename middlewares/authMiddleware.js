@@ -13,6 +13,9 @@ export const verifyStudentToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
+
+
+    console.log("decoded", decoded);
     req.student = decoded; // attach student info to the request
     next();
   } catch (error) {

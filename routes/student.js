@@ -4,7 +4,10 @@ const router = express();
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import jwt from "jsonwebtoken";
-import { verifyAdminToken, verifyStudentToken } from "../middlewares/authMiddleware.js";
+import {
+  verifyAdminToken,
+  verifyStudentToken,
+} from "../middlewares/authMiddleware.js";
 const SECRET_KEY = process.env.JWT_SECRET;
 
 import multer from "multer";
@@ -15,7 +18,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-router.get("/", verifyAdminToken,  async (req, res) => {
+router.get("/", verifyAdminToken, async (req, res) => {
   try {
     // const allStudent = await prisma.student.findMany({
     //   where: { name: "Alice" },
@@ -72,11 +75,15 @@ router.post("/createInitialStudent", async (req, res) => {
         { expiresIn: "1h" }
       );
 
-      return res.status(200).json({
-        message: "Student already exists",
-        student: existingStudent,
-        token,
-      });
+      return res
+        .cookie("token", token, {
+          httpOnly: true,
+          sameSite: "strict",
+          secure: true,
+          maxAge: 24 * 60 * 60 * 1000,
+        })
+        .status(200)
+        .json({ message: "Student already exists", student: existingStudent });
     }
 
     // Else create a new student
@@ -96,11 +103,15 @@ router.post("/createInitialStudent", async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    return res.status(201).json({
-      message: "Student created successfully",
-      student,
-      token,
-    });
+    return res
+      .cookie("token", token, {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({ message: "Student created successfully", student });
   } catch (error) {
     console.error("Error creating or finding student:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -210,7 +221,7 @@ router.post(
         relationWithStudent,
         cautionMoneyDeposited,
         remark,
-        document
+        document,
       } = req.body;
 
       const requiredFields = [
@@ -257,6 +268,8 @@ router.post(
         });
         return res.status(404).json({ message: "Student not found" });
       }
+
+      console.log("existingStudentId", existingStudent.id);
 
       try {
         const [updatedStudent, addStudentLog] = await prisma.$transaction([
