@@ -24,7 +24,7 @@ model Student {
   fatherName          String?
   rollNumber          String?
   dateOfAdmission     DateTime?   @db.Date  // ⬅️ Store only the date (without time)
-  session             Int?                  // Stores year like 2024
+  session             String?                  // Stores year like 2024
   batch               String?
   accountHolderName   String?
   accountNumber       String?
