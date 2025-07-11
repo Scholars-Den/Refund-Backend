@@ -21,20 +21,61 @@ router.post("/", async (req, res) => {
 });
 
 // READ ALL
-router.get("/", async (req, res) => {
+router.get("/pending", async (req, res) => {
   try {
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const whereClause = status
+      ? { status: status } // Filter by status if provided
+      : {};
+
+    // Fetch paginated records
     const logs = await prisma.statusLog.findMany({
+      where: whereClause,
+      skip: skip,
+      take: limitNum,
       include: {
         student: true,
         user: true,
       },
+      orderBy: {
+        createdAt: "desc", // optional: sort newest first
+      },
     });
-    res.status(200).json(logs);
+
+    // Get total count (without pagination) for frontend use
+    const total = await prisma.statusLog.count({ where: whereClause });
+
+    res.status(200).json({
+      data: logs,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
   } catch (error) {
     console.error("Error fetching status logs:", error);
     res.status(500).json({ error: "Failed to fetch status logs" });
   }
 });
+
+// router.get("/", async (req, res) => {
+//   try {
+//     const logs = await prisma.statusLog.findMany({
+//       include: {
+//         student: true,
+//         user: true,
+//       },
+//     });
+//     res.status(200).json(logs);
+//   } catch (error) {
+//     console.error("Error fetching status logs:", error);
+//     res.status(500).json({ error: "Failed to fetch status logs" });
+//   }
+// });
 
 // READ ONE
 router.get("/:id", async (req, res) => {
@@ -63,8 +104,11 @@ router.patch("/", verifyAdminToken, async (req, res) => {
       return res.status(400).json({ error: "formId (logId) is required" });
     }
 
+
+    console.log("req.body", formId, status, remarks);
+
     const updatedLog = await prisma.statusLog.update({
-      where: { formId }, // ✅ Now allowed because formId is unique
+      where: { id: formId }, // ✅ Now allowed because formId is unique
       data: {
         ...(status && { status }),
         ...(remarks && { remarks }),
