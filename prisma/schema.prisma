@@ -14,46 +14,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Student {
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  id                  Int         @id @default(autoincrement())
-  mobileNumber        String
-  name                String?
-  fatherName          String?
-  rollNumber          String?
-  dateOfAdmission     DateTime?   @db.Date  // ⬅️ Store only the date (without time)
-  session             String?                  // Stores year like 2024
-  batch               String?
-  accountHolderName   String?
-  accountNumber       String?
-  ifsc                String?
-  bankName            String?
-  relationWithStudent String?
-  cautionMoneyDeposited       Int?
-  remark              String?
-  document  String?
-  Status              Status[]
-  StatusLog           StatusLog[]
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  id                    Int         @id @default(autoincrement())
+  mobileNumber          String      @unique
+  name                  String?
+  fatherName            String?
+  rollNumber            String?
+  dateOfAdmission       DateTime?   @db.Date // ⬅️ Store only the date (without time)
+  session               String? // Stores year like 2024
+  batch                 String?
+  accountHolderName     String?
+  accountNumber         String?
+  ifsc                  String?
+  bankName              String?
+  relationWithStudent   String?
+  cautionMoneyDeposited Int?
+  remark                String?
+  document              String?
+  StatusLog             StatusLog[]
+  Status                Status[]
 }
 
+// model Status {
+//   id        Int      @id @default(autoincrement())
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   student   Student  @relation(fields: [formId], references: [id])
+//   formId    Int
+//   studentContact   Student  @relation(fields: [mobileNumber], references: [mobileNumber])
+//   mobileNumber    Int
+//   remark    String
+// }
 
 model Status {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  student   Student  @relation(fields: [formId], references: [id])
-  formId    Int
-  remark    String
+
+  mobileNumber String
+  student      Student @relation(fields: [mobileNumber], references: [mobileNumber], onDelete: Cascade)
+
+  remark String
 }
 
 model User {
-  id          Int         @id @default(autoincrement())
-  name        String
-  mobileNumber String @unique
-  role        Role        @default(GUEST)
-  StatusLog   StatusLog[]
+  id           Int         @id @default(autoincrement())
+  name         String
+  mobileNumber String      @unique
+  role         Role        @default(GUEST)
+  StatusLog    StatusLog[]
 }
 
 enum Role {
@@ -64,15 +75,15 @@ enum Role {
 }
 
 model StatusLog {
-  id        Int      @id @default(autoincrement())
-  student   Student  @relation(fields: [formId], references: [id]) 
-  formId    Int @unique
-  status    String
-  remarks   String
-  user      User?     @relation(fields: [updatedBy], references: [id])
-  updatedBy Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id           Int      @id @default(autoincrement())
+  mobileNumber String
+  student      Student  @relation(fields: [mobileNumber], references: [mobileNumber], onDelete: Cascade)
+  status       String
+  remarks      String
+  user         User?    @relation(fields: [updatedBy], references: [id])
+  updatedBy    Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 }
 
 model OtpStore {
