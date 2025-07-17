@@ -126,7 +126,7 @@ router.get("/studentByForm", verifyStudentToken, async (req, res) => {
       where: {
         mobileNumber,
       },
-       include: {
+      include: {
         student: true,
         user: true,
       },
@@ -349,11 +349,174 @@ const safeUnlink = (path) => {
 //   }
 // );
 
+// router.post(
+//   "/create",
+//   verifyStudentToken,
+//   upload.single("image"),
+//   async (req, res) => {
+//     console.log("Request Headers:", req.headers);
+//     const mobileNumber = req.student.mobileNumber;
+//     console.log("req.body", req.body);
+//     console.log("mobileNumber", mobileNumber);
 
+//     try {
+//       const {
+//         name,
+//         fatherName,
+//         rollNumber,
+//         dateOfAdmission,
+//         session,
+//         batch,
+//         accountHolderName,
+//         accountNumber,
+//         ifsc,
+//         bankName,
+//         relationWithStudent,
+//         cautionMoneyDeposited,
+//         remark,
+//         document,
+//       } = req.body;
 
+//       // ✅ Validate required fields
+//       const requiredFields = [
+//         name,
+//         fatherName,
+//         rollNumber,
+//         dateOfAdmission,
+//         session,
+//         batch,
+//         accountHolderName,
+//         accountNumber,
+//         ifsc,
+//         bankName,
+//         document,
+//       ];
+//       const emptyField = requiredFields.find((f) => !f);
+//       if (emptyField) {
+//         return res.status(400).json({ message: "Missing required fields" });
+//       }
 
+//       // ✅ Check if student exists
+//       const existingStudent = await prisma.student.findFirst({
+//         where: { mobileNumber },
+//       });
 
+//       const existingStudentLog = await prisma.statusLog.findFirst({
+//         where : {mobileNumber}
+//       })
 
+//       console.log("existingStudent", existingStudent);
+
+//       if (!existingStudent) {
+//         // Log and return 404
+//         try {
+//           await prisma.statusLog.create({
+//             data: {
+//               mobileNumber,
+//               status: "Student Not Found",
+//               remarks: `No student found with mobile number ${mobileNumber}`,
+//             },
+//           });
+//         } catch (logErr) {
+//           console.error("Failed to log missing student:", logErr);
+//         }
+//         return res.status(404).json({ message: "Student not found" });
+//       }
+
+//       console.log("existingStudentId", existingStudent.id);
+
+//       // ✅ Update student and log status
+//       try {
+//         const [updatedStudent, addStudentLog] = await prisma.$transaction([
+//           prisma.student.update({
+//             where: { id: existingStudent.id },
+//             data: {
+//               name,
+//               fatherName,
+//               rollNumber,
+//               dateOfAdmission: new Date(dateOfAdmission),
+//               session,
+//               batch,
+//               accountHolderName,
+//               accountNumber,
+//               ifsc,
+//               bankName,
+//               relationWithStudent,
+//               cautionMoneyDeposited: parseInt(cautionMoneyDeposited),
+//               remark,
+//               document,
+//             },
+//           }),
+
+//           prisma.statusLog.create({
+//             data: {
+//               mobileNumber,
+//               status: "Submitted",
+//               remarks: "Form Submitted Successfully",
+//             },
+//           }),
+//         ]);
+
+//         return res.status(200).json({
+//           message: "Student updated successfully",
+//           student: updatedStudent,
+//         });
+//       } catch (txError) {
+//         console.error("Transaction Error:", txError);
+
+//         try {
+//           await prisma.statusLog.create({
+//             data: {
+//               mobileNumber,
+//               status: "Student Update Failed",
+//               remarks: `Update failed: ${txError.message}`,
+//             },
+//           });
+//         } catch (logErr) {
+//           console.error("Failed to log transaction error:", logErr);
+//         }
+
+//         return res.status(500).json({ error: "Failed to update student" });
+//       }
+//     } catch (error) {
+//       console.error("Unhandled Error:", error);
+
+//       // ✅ Log unhandled error
+//       try {
+//         await prisma.statusLog.create({
+//           data: {
+//             mobileNumber,
+//             status: "Unhandled Error",
+//             remarks: error.message || "Unknown error occurred",
+//           },
+//         });
+//       } catch (logErr) {
+//         console.error("Failed to log unhandled error:", logErr);
+//       }
+
+//       if (error.code === "P2025") {
+//         return res.status(404).json({ error: "Student not found in database" });
+//       }
+
+//       return res.status(500).json({ error: "Unexpected server error" });
+//     }
+//   }
+// );
+
+function upsertStatusLogPrismaTx(mobileNumber, status, message) {
+  return prisma.statusLog.upsert({
+    where: { mobileNumber },
+    update: {
+      status,
+      remarks : message,
+    },
+    create: {
+      mobileNumber,
+      status,
+      remarks : message,
+    },
+  });
+}
 
 router.post(
   "/create",
@@ -407,21 +570,14 @@ router.post(
         where: { mobileNumber },
       });
 
-      console.log("existingStudent", existingStudent);  
+      console.log("existingStudent", existingStudent);
 
       if (!existingStudent) {
-        // Log and return 404
-        try {
-          await prisma.statusLog.create({
-            data: {
-              mobileNumber,
-              status: "Student Not Found",
-              remarks: `No student found with mobile number ${mobileNumber}`,
-            },
-          });
-        } catch (logErr) {
-          console.error("Failed to log missing student:", logErr);
-        }
+        await upsertStatusLogPrismaTx(
+          mobileNumber,
+          "Student Not Found",
+          `No student found with mobile number ${mobileNumber}`
+        );
         return res.status(404).json({ message: "Student not found" });
       }
 
@@ -429,7 +585,7 @@ router.post(
 
       // ✅ Update student and log status
       try {
-        const [updatedStudent, addStudentLog] = await prisma.$transaction([
+        const [updatedStudent, logEntry] = await prisma.$transaction([
           prisma.student.update({
             where: { id: existingStudent.id },
             data: {
@@ -449,13 +605,11 @@ router.post(
               document,
             },
           }),
-          prisma.statusLog.create({
-            data: {
-              mobileNumber,
-              status: "Submitted",
-              remarks: "Form Submitted Successfully",
-            },
-          }),
+          upsertStatusLogPrismaTx(
+            mobileNumber,
+            "Submitted",
+            "Form Submitted Successfully"
+          ),
         ]);
 
         return res.status(200).json({
@@ -465,35 +619,22 @@ router.post(
       } catch (txError) {
         console.error("Transaction Error:", txError);
 
-        try {
-          await prisma.statusLog.create({
-            data: {
-              mobileNumber,
-              status: "Student Update Failed",
-              remarks: `Update failed: ${txError.message}`,
-            },
-          });
-        } catch (logErr) {
-          console.error("Failed to log transaction error:", logErr);
-        }
+        await upsertStatusLogPrismaTx(
+          mobileNumber,
+          "Student Update Failed",
+          `Update failed: ${txError.message}`
+        );
 
         return res.status(500).json({ error: "Failed to update student" });
       }
     } catch (error) {
       console.error("Unhandled Error:", error);
 
-      // ✅ Log unhandled error
-      try {
-        await prisma.statusLog.create({
-          data: {
-            mobileNumber,
-            status: "Unhandled Error",
-            remarks: error.message || "Unknown error occurred",
-          },
-        });
-      } catch (logErr) {
-        console.error("Failed to log unhandled error:", logErr);
-      }
+      await upsertStatusLogPrismaTx(
+        mobileNumber,
+        "Unhandled Error",
+        error.message || "Unknown error occurred"
+      );
 
       if (error.code === "P2025") {
         return res.status(404).json({ error: "Student not found in database" });
@@ -503,11 +644,6 @@ router.post(
     }
   }
 );
-
-
-
-
-
 
 router.patch("/update/:id", async (req, res) => {
   const studentId = parseInt(req.params.id, 10);

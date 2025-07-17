@@ -53,7 +53,7 @@ model Status {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  mobileNumber String
+  mobileNumber String @unique
   student      Student @relation(fields: [mobileNumber], references: [mobileNumber], onDelete: Cascade)
 
   remark String
@@ -76,7 +76,7 @@ enum Role {
 
 model StatusLog {
   id           Int      @id @default(autoincrement())
-  mobileNumber String
+  mobileNumber String @unique
   student      Student  @relation(fields: [mobileNumber], references: [mobileNumber], onDelete: Cascade)
   status       String
   remarks      String
