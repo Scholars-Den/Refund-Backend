@@ -53,10 +53,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 //   }
 // });
 
-
-
-
-
 router.post("/login", async (req, res) => {
   try {
     const { mobileNumber } = req.body;
@@ -84,12 +80,11 @@ router.post("/login", async (req, res) => {
     // });
 
     res.cookie("token", tokenForExistingStudent, {
-  httpOnly: true,
-  sameSite: "Lax",
-  secure: false,
-  maxAge: 24 * 60 * 60 * 1000,
-});
-
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     return res.status(200).json({ message: "Login successful" });
   } catch (error) {
@@ -97,10 +92,6 @@ router.post("/login", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-
-
 
 // Generate & send OTP
 router.post("/sendVerification", async (req, res) => {

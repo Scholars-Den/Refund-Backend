@@ -15,6 +15,7 @@ import fs from "fs";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+import { messageForSubmittedStatus } from "../utils/smsTemplates.js";
 
 dotenv.config();
 
@@ -75,13 +76,14 @@ router.post("/createInitialStudent", async (req, res) => {
         { expiresIn: "1h" }
       );
 
+      res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "Lax",
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
       return res
-        .cookie("token", token, {
-          httpOnly: true,
-          sameSite: "strict",
-          secure: false,
-          maxAge: 24 * 60 * 60 * 1000,
-        })
         .status(200)
         .json({ message: "Student already exists", student: existingStudent });
     }
@@ -106,7 +108,7 @@ router.post("/createInitialStudent", async (req, res) => {
     return res
       .cookie("token", token, {
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "none",
         secure: false,
         maxAge: 24 * 60 * 60 * 1000,
       })
@@ -508,12 +510,12 @@ function upsertStatusLogPrismaTx(mobileNumber, status, message) {
     where: { mobileNumber },
     update: {
       status,
-      remarks : message,
+      remarks: message,
     },
     create: {
       mobileNumber,
       status,
-      remarks : message,
+      remarks: message,
     },
   });
 }
@@ -583,6 +585,8 @@ router.post(
 
       console.log("existingStudentId", existingStudent.id);
 
+      console.log("existingStudnet details", existingStudent);
+
       // ✅ Update student and log status
       try {
         const [updatedStudent, logEntry] = await prisma.$transaction([
@@ -612,6 +616,12 @@ router.post(
           ),
         ]);
 
+        await messageForSubmittedStatus({
+          name,
+          rollNumber,
+          mobileNumber: existingStudent.mobileNumber,
+        });
+
         return res.status(200).json({
           message: "Student updated successfully",
           student: updatedStudent,
@@ -628,7 +638,7 @@ router.post(
         return res.status(500).json({ error: "Failed to update student" });
       }
     } catch (error) {
-      console.error("Unhandled Error:", error);
+      console.log("Unhandled Error:", error);
 
       await upsertStatusLogPrismaTx(
         mobileNumber,

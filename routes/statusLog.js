@@ -1,6 +1,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { verifyAdminToken } from "../middlewares/authMiddleware.js";
+import { messageForApprovalStatus, messageForDisbursedStatus, messageForRejectedStatus } from "../utils/smsTemplates.js";
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -104,7 +105,6 @@ router.patch("/", verifyAdminToken, async (req, res) => {
       return res.status(400).json({ error: "formId (logId) is required" });
     }
 
-
     console.log("req.body", formId, status, remarks);
 
     const updatedLog = await prisma.statusLog.update({
@@ -114,9 +114,27 @@ router.patch("/", verifyAdminToken, async (req, res) => {
         ...(remarks && { remarks }),
         updatedBy: adminId,
       },
+      include: {
+        student: {
+          select: {
+            rollNumber: true,
+            name: true,
+          },
+        },
+      },
     });
 
-    res.status(200).json(updatedLog);
+    console.log(" send message", updatedLog);
+    if (updatedLog.status === "Approved") {
+      messageForApprovalStatus({name : updatedLog.student.name, rollNumber: updatedLog.student.rollNumber, mobileNumber : updatedLog.mobileNumber});
+    }
+    else if(updatedLog.status === "Disburse" ){
+      messageForDisbursedStatus({name : updatedLog.student.name, rollNumber: updatedLog.student.rollNumber, mobileNumber : updatedLog.mobileNumber})
+    }else if(updatedLog.status === "Rejected"){
+      messageForRejectedStatus({name : updatedLog.student.name, rollNumber: updatedLog.student.rollNumber, reason: updatedLog.remarks, mobileNumber : updatedLog.mobileNumber})
+    }
+
+    return res.status(200).json(updatedLog);
   } catch (error) {
     console.error("Error updating status log:", error);
     res.status(500).json({ error: "Failed to update status log" });
