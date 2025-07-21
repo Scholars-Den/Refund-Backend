@@ -1,4 +1,8 @@
 import axios from "axios";
+import dotenv from "dotenv";
+dotenv.config();
+
+const hspSmsApi = process.env.hspSmsApi
 
 export const otpVerification = async (otp, mobileNumber) => {
   console.log("${process.env.FAST2SMS_API_KEY}", process.env.FAST2SMS_API_KEY);
@@ -31,7 +35,7 @@ export const messageForApprovalStatus = async ({ name, rollNumber, mobileNumber 
   const message = `Dear Parent, your Caution Money Refund Form for ${name}, Roll No: ${rollNumber} has been approved. – Scholars Den`;
   const options = {
     method: "GET",
-    url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=44bd7839-a2f8-4957-b0e4-f07a49fdd11f`,
+    url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=${hspSmsApi}`,
   };
 
   const response = await axios.get(options.url);
@@ -48,7 +52,7 @@ console.log("mobileNumber for messageForSubmittedStatus", name , rollNumber, mob
   const message = `Dear Parent, your Caution Money Refund Form for ${name}, Roll No: ${rollNumber} has been submitted successfully. We will notify you once it is reviewed. – Scholars Den`;
   const options = {
     method: "GET",
-    url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=44bd7839-a2f8-4957-b0e4-f07a49fdd11f`,
+  url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=${hspSmsApi}`,
   };
 
   const response = await axios.get(options.url);
@@ -63,7 +67,7 @@ export const messageForDisbursedStatus = async ({ name, rollNumber, mobileNumber
   
   const options = {
     method: "GET",
-    url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=44bd7839-a2f8-4957-b0e4-f07a49fdd11f`,
+    url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=${hspSmsApi}`,
   };
 
   const response = await axios.get(options.url);
@@ -78,7 +82,7 @@ export const messageForRejectedStatus = async ({ name, rollNumber, reason, mobil
   
   const options = {
     method: "GET",
-    url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=44bd7839-a2f8-4957-b0e4-f07a49fdd11f`,
+    url: `http://sms.hspsms.com/sendSMS?username=Scholarsden&message=${message}&sendername=SCHDEN&smstype=TRANS&numbers=${mobileNumber}&apikey=${hspSmsApi}`,
   };
 
   const response = await axios.get(options.url);
