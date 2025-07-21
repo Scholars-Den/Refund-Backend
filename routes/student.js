@@ -63,9 +63,14 @@ router.post("/createInitialStudent", async (req, res) => {
     const existingStudent = await prisma.student.findFirst({
       where: { mobileNumber },
     });
+    const existingStudentinStatusLog = await prisma.statusLog.findFirst({
+      where: { mobileNumber },
+    });
+
+    console.log("existingStudentinStatusLog", existingStudentinStatusLog);
 
     // If student exists, return the same + token
-    if (existingStudent) {
+    if (existingStudentinStatusLog) {
       const token = jwt.sign(
         {
           id: existingStudent.id,
@@ -88,14 +93,17 @@ router.post("/createInitialStudent", async (req, res) => {
         .json({ message: "Student already exists", student: existingStudent });
     }
 
-    // Else create a new student
-    const student = await prisma.student.create({
-      data: {
-        mobileNumber,
-      },
-    });
+    let token = "";
+    let data = "";
 
-    const token = jwt.sign(
+    // Else create a new student
+    if (!existingStudent) {
+      const student = await prisma.student.create({
+        data: {
+          mobileNumber,
+        },
+      });
+       token = jwt.sign(
       {
         id: student.id,
         mobileNumber: student.mobileNumber,
@@ -104,6 +112,21 @@ router.post("/createInitialStudent", async (req, res) => {
       SECRET_KEY,
       { expiresIn: "1h" }
     );
+    data = student
+    }else{
+
+      token = jwt.sign(
+       {
+         id: existingStudent?.id,
+         mobileNumber: existingStudent?.mobileNumber,
+         role: "student",
+       },
+       SECRET_KEY,
+       { expiresIn: "1h" }
+     );
+     data = existingStudent;
+    }
+
 
     return res
       .cookie("token", token, {
@@ -113,7 +136,7 @@ router.post("/createInitialStudent", async (req, res) => {
         maxAge: 24 * 60 * 60 * 1000,
       })
       .status(200)
-      .json({ message: "Student created successfully", student });
+      .json({ message: "Student created successfully", student: data });
   } catch (error) {
     console.error("Error creating or finding student:", error);
     return res.status(500).json({ message: "Internal Server Error" });
