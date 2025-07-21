@@ -84,7 +84,7 @@ router.post("/createInitialStudent", async (req, res) => {
       res.cookie("token", token, {
         httpOnly: true,
         sameSite: "Lax",
-        secure: false,
+        secure: true,
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -132,7 +132,7 @@ router.post("/createInitialStudent", async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         sameSite: "none",
-        secure: false,
+        secure: true,
         maxAge: 24 * 60 * 60 * 1000,
       })
       .status(200)
