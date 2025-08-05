@@ -7,6 +7,8 @@ const prisma = new PrismaClient();
 export const verifyStudentToken = (req, res, next) => {
   const token = req.cookies.token;
 
+  console.log("token", token);
+
   if (!token) {
     return res.status(401).json({ message: "Authorization header missing" });
   }

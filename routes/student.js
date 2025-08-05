@@ -84,7 +84,7 @@ router.post("/createInitialStudent", async (req, res) => {
       res.cookie("token", token, {
         httpOnly: true,
         sameSite: "Lax",
-        secure: true,
+        secure: false,
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -132,7 +132,7 @@ router.post("/createInitialStudent", async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         sameSite: "none",
-        secure: true,
+        secure: false,
         maxAge: 24 * 60 * 60 * 1000,
       })
       .status(200)
@@ -156,6 +156,8 @@ router.get("/studentByForm", verifyStudentToken, async (req, res) => {
         user: true,
       },
     });
+
+    
     res.status(200).json({ result });
   } catch (error) {
     console.error("error from student get", error);

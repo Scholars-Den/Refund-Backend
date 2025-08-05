@@ -26,6 +26,9 @@ router.get("/pending", async (req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
 
+
+    console.log("req.query", req.query);
+
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
@@ -50,6 +53,10 @@ router.get("/pending", async (req, res) => {
 
     // Get total count (without pagination) for frontend use
     const total = await prisma.statusLog.count({ where: whereClause });
+
+
+
+    console.log("data total page totalPages", logs, total, pageNum, total, limitNum)
 
     res.status(200).json({
       data: logs,
