@@ -81,6 +81,8 @@ router.post("/createInitialStudent", async (req, res) => {
         { expiresIn: "1h" }
       );
 
+      console.log("token from existingStudentinStatusLog if", token);
+
       res.cookie("token", token, {
         httpOnly: true,
         sameSite: "Lax",
@@ -103,31 +105,34 @@ router.post("/createInitialStudent", async (req, res) => {
           mobileNumber,
         },
       });
-       token = jwt.sign(
-      {
-        id: student.id,
-        mobileNumber: student.mobileNumber,
-        role: "student",
-      },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-    data = student
-    }else{
-
       token = jwt.sign(
-       {
-         id: existingStudent?.id,
-         mobileNumber: existingStudent?.mobileNumber,
-         role: "student",
-       },
-       SECRET_KEY,
-       { expiresIn: "1h" }
-     );
-     data = existingStudent;
+        {
+          id: student.id,
+          mobileNumber: student.mobileNumber,
+          role: "student",
+        },
+        SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+      console.log("token from !existingStudent if", token);
+
+      data = student;
+    } else {
+      token = jwt.sign(
+        {
+          id: existingStudent?.id,
+          mobileNumber: existingStudent?.mobileNumber,
+          role: "student",
+        },
+        SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+      console.log("token from !existingStudent else", token);
+
+      data = existingStudent;
     }
 
-
+    console.log("token from last", token);
     return res
       .cookie("token", token, {
         httpOnly: true,
@@ -157,7 +162,6 @@ router.get("/studentByForm", verifyStudentToken, async (req, res) => {
       },
     });
 
-    
     res.status(200).json({ result });
   } catch (error) {
     console.error("error from student get", error);
