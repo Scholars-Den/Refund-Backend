@@ -55,6 +55,8 @@ router.get("/", verifyAdminToken, async (req, res) => {
 
 router.post("/createInitialStudent", async (req, res) => {
   const { mobileNumber } = req.body;
+    let token = "";
+    let data = "";
 
   try {
     if (!mobileNumber) {
@@ -73,7 +75,7 @@ router.post("/createInitialStudent", async (req, res) => {
 
     // If student exists, return the same + token
     if (existingStudentinStatusLog) {
-      const token = jwt.sign(
+       token = jwt.sign(
         {
           id: existingStudent.id,
           mobileNumber: existingStudent.mobileNumber,
@@ -87,7 +89,7 @@ router.post("/createInitialStudent", async (req, res) => {
 
       res.cookie("token", token, {
         httpOnly: NODE_ENV === "production" ? true : false,
-        sameSite: "Lax",
+        sameSite: "none",
         secure: NODE_ENV === "production" ? true : false,
         maxAge: 24 * 60 * 60 * 1000,
       });
@@ -97,8 +99,7 @@ router.post("/createInitialStudent", async (req, res) => {
         .json({ message: "Student already exists", student: existingStudent });
     }
 
-    let token = "";
-    let data = "";
+  
 
     // Else create a new student
     if (!existingStudent) {
