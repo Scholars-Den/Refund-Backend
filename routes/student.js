@@ -136,8 +136,7 @@ router.post("/createInitialStudent", async (req, res) => {
     }
 
     console.log("token from last", token);
-    return res
-      .cookie("token", token, {
+    return res.cookie("token", token, {
         httpOnly: NODE_ENV==="production"? true : false  ,
         sameSite: "none",
         secure: NODE_ENV==="production"? true : false ,
