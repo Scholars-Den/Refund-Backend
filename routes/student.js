@@ -10,6 +10,8 @@ import {
 } from "../middlewares/authMiddleware.js";
 const SECRET_KEY = process.env.JWT_SECRET;
 
+const NODE_ENV = process.env.NODE_ENV;
+
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -84,9 +86,9 @@ router.post("/createInitialStudent", async (req, res) => {
       console.log("token from existingStudentinStatusLog if", token);
 
       res.cookie("token", token, {
-        httpOnly: true,
+        httpOnly: NODE_ENV === "production" ? true : false,
         sameSite: "Lax",
-        secure: false,
+        secure: NODE_ENV === "production" ? true : false,
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -135,9 +137,9 @@ router.post("/createInitialStudent", async (req, res) => {
     console.log("token from last", token);
     return res
       .cookie("token", token, {
-        httpOnly: true,
+        httpOnly: NODE_ENV==="production"? true : false  ,
         sameSite: "none",
-        secure: false,
+        secure: NODE_ENV==="production"? true : false ,
         maxAge: 24 * 60 * 60 * 1000,
       })
       .status(200)
