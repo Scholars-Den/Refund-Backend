@@ -13,6 +13,31 @@ import cookieParser from "cookie-parser";
 // import helmet from "helmet";
 
 const app = express();
+
+
+const allowedOrigins = [
+  "https://refund.scholarsden.in", // ✅ production frontend
+  "http://localhost:5173",         // ✅ dev frontend (can remove in prod)
+];
+
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (e.g. curl or mobile apps)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true, // ✅ required for cookies
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+
+
+
 // app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
