@@ -100,14 +100,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 //   }
 // });
 
-
-
-
-
-
-
-
-
 router.post("/login", async (req, res) => {
   try {
     const { mobileNumber } = req.body;
@@ -140,6 +132,7 @@ router.post("/login", async (req, res) => {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "None" : "Lax",
+      domain: isProduction ? ".scholarsden.in" : "localhost",
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -149,6 +142,7 @@ router.post("/login", async (req, res) => {
       httpOnly: false, // ✅ allow JS to read it
       secure: isProduction,
       sameSite: isProduction ? "None" : "Lax",
+      domain: isProduction ? ".scholarsden.in" : "localhost",
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -159,19 +153,6 @@ router.post("/login", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 router.post("/logout", async (req, res) => {
   try {
@@ -191,8 +172,6 @@ router.post("/logout", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
 
 // Generate & send OTP
 router.post("/sendVerification", async (req, res) => {
