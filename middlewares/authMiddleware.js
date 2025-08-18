@@ -16,7 +16,6 @@ export const verifyStudentToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
 
-
     console.log("decoded", decoded);
     req.student = decoded; // attach student info to the request
     next();
@@ -25,8 +24,8 @@ export const verifyStudentToken = (req, res, next) => {
   }
 };
 export const verifyAdminToken = async (req, res, next) => {
+  console.log("cokkies for frontend request", req.cookies);
   const token = req.cookies.token;
-
 
   if (!token) {
     return res.status(401).json({ message: "Authorization header missing" });
@@ -34,7 +33,6 @@ export const verifyAdminToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
-
 
     const isAvailable = await prisma.user.findUnique({
       where: { mobileNumber: decoded.mobileNumber },

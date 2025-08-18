@@ -72,7 +72,7 @@ router.post("/", async (req, res) => {
 
 
 
-router.get("/pending", async (req, res) => {
+router.get("/pending", verifyAdminToken , async (req, res) => {
   try {
     const { status, page = 1, limit = 10, startDate, endDate } = req.query;
 
@@ -133,7 +133,7 @@ router.get("/pending", async (req, res) => {
 
 
 
-router.get("/downloadExcelData", async (req, res) => {
+router.get("/downloadExcelData", verifyAdminToken, async (req, res) => {
   try {
     const { status, startDate, endDate } = req.query;
 
