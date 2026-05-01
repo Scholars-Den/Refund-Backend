@@ -92,3 +92,19 @@ model OtpStore {
   otp          String
   createdAt    DateTime
 }
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  source       String
+  action       String
+  level        String   @default("error")
+  message      String
+  mobileNumber String?
+  fileName     String?
+  fileType     String?
+  fileSize     Int?
+  userAgent    String?
+  meta         Json?
+}

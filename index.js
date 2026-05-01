@@ -5,6 +5,7 @@ import statusRoutes from "./routes/status.js";
 import userRoutes from "./routes/user.js";
 import statusLogRoutes from "./routes/statusLog.js";
 import authRoutes from "./routes/auth.js";
+import auditLogRoutes from "./routes/auditLog.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
@@ -74,6 +75,7 @@ app.use("/api/status", statusRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/statusLog", statusLogRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/auditLog", auditLogRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3000;
