@@ -38,32 +38,28 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          APP_DIR: ${{ secrets.BACKEND_APP_DIR }}
-          REPO_URL: ${{ secrets.BACKEND_REPO_URL }}
+          APP_DIR: ${{ secrets.SERVER_DEPLOY_PATH }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          FAST2SMS_API_KEY: ${{ secrets.FAST2SMS_API_KEY }}
-          hspSmsApi: ${{ secrets.hspSmsApi }}
+          HSPSMSAPI: ${{ secrets.HSPSMSAPI }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: APP_DIR,REPO_URL,DATABASE_URL,JWT_SECRET,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET,FAST2SMS_API_KEY,hspSmsApi
+          envs: APP_DIR,DATABASE_URL,JWT_SECRET,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET,HSPSMSAPI
           script: |
             set -e
-            mkdir -p "$APP_DIR"
-
-            if [ ! -d "$APP_DIR/.git" ]; then
-              rm -rf "$APP_DIR"
-              git clone "$REPO_URL" "$APP_DIR"
-            fi
+            [ -n "$APP_DIR" ] || { echo "APP_DIR is empty. Set SERVER_DEPLOY_PATH secret."; exit 1; }
 
             cd "$APP_DIR"
-            git pull --ff-only origin main
+            git config --global --add safe.directory "$APP_DIR"
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
 
             cat > .env <<EOT
             PORT=3000
@@ -72,8 +68,7 @@ jobs:
             CLOUDINARY_CLOUD_NAME=$CLOUDINARY_CLOUD_NAME
             CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY
             CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET
-            FAST2SMS_API_KEY=$FAST2SMS_API_KEY
-            hspSmsApi=$hspSmsApi
+            hspSmsApi=$HSPSMSAPI
             EOT
 
             docker compose up -d --build --remove-orphans
