@@ -4,3 +4,8 @@ npm-debug.log
 .gitignore
 .env
 uploads
+.github
+.vscode
+coverage
+*.log
+README.md
