@@ -45,12 +45,13 @@ jobs:
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
           HSPSMSAPI: ${{ secrets.HSPSMSAPI }}
+          BACKEND_COMPOSE_FILE: ${{ secrets.BACKEND_COMPOSE_FILE }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: APP_DIR,DATABASE_URL,JWT_SECRET,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET,HSPSMSAPI
+          envs: APP_DIR,DATABASE_URL,JWT_SECRET,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET,HSPSMSAPI,BACKEND_COMPOSE_FILE
           script: |
             set -e
             [ -n "$APP_DIR" ] || { echo "APP_DIR is empty. Set SERVER_DEPLOY_PATH secret."; exit 1; }
@@ -59,7 +60,12 @@ jobs:
             git config --global --add safe.directory "$APP_DIR"
             git fetch origin main
             git reset --hard origin/main
-            git clean -fd
+            git clean -fd \
+              -e docker-compose.yml \
+              -e docker-compose.yaml \
+              -e compose.yml \
+              -e compose.yaml \
+              -e deploy/
 
             cat > .env <<EOT
             PORT=3000
@@ -71,5 +77,20 @@ jobs:
             hspSmsApi=$HSPSMSAPI
             EOT
 
-            docker compose up -d --build --remove-orphans
+            COMPOSE_FILE_PATH="$BACKEND_COMPOSE_FILE"
+            if [ -z "$COMPOSE_FILE_PATH" ]; then
+              for f in docker-compose.yml docker-compose.yaml compose.yml compose.yaml deploy/docker-compose.yml deploy/docker-compose.yaml; do
+                if [ -f "$f" ]; then
+                  COMPOSE_FILE_PATH="$f"
+                  break
+                fi
+              done
+            fi
+
+            if [ -z "$COMPOSE_FILE_PATH" ] || [ ! -f "$COMPOSE_FILE_PATH" ]; then
+              echo "Compose file not found. Add one of: docker-compose.yml, docker-compose.yaml, compose.yml, compose.yaml, deploy/docker-compose.yml"
+              exit 1
+            fi
+
+            docker compose -f "$COMPOSE_FILE_PATH" up -d --build --remove-orphans
             docker image prune -f
